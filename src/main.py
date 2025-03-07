@@ -1,65 +1,65 @@
-import tkinter as tk
+#import tkinter as tk
 from pynput import keyboard
-import threading
-import time
+import json,os,sys,threading,time
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton,QVBoxLayout
 
-# Function to clear the label after a timeout
-def clearlabel():
-    label.config(text="")
+def fullpath(relative_path):
+    directory = os.path.dirname(__file__)
+    return os.path.join(directory, relative_path)
 
-# This function will be called when a key is pressed
-def onkeypress(key):
-    try:
-        # Display the key pressed in the label
-        label.config(text=f"{key.char}")
-    except AttributeError:
-        label.config(text=f"{key.name}")
+def openjson(filename):
+    file = fullpath(filename)
+    with open(file) as f:
+        jsondata = json.load(f)
+    return(jsondata)
 
-    # Reset the timer to clear the label after a timeout
-    reset_timer()
+config = openjson(fullpath('config.json'))
+# Main Window Class
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
 
-# Function to reset the timer that clears the label
-def reset_timer():
-    global last_key_time
-    last_key_time = time.time()
+        # Set window properties
+        self.setWindowTitle(config['title'])
+        self.setGeometry(100, 100, 300, 200)
+        #self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
-# Create the main window
-root = tk.Tk()
-root.title(" ")
-root.geometry("300x150")
-#root.overrideredirect(True)  # Remove window decorations (title bar, borders, etc.)
-root.config(bg='white')  # Set background color of the window to black (invisible)
+        self.label = QLabel("Welcome", self)
+        self.label.setStyleSheet("font-size: 40px;color:"+config['foreground']+";")
+        layout = QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #! START
+        self.listener = keyboard.Listener(on_press=self.onkeypress)
+        self.listener.start()
+        #self.clearkeytext()
 
-# Make the window background transparent (for Linux or macOS, this works; for Windows, you may need a workaround)
-#root.attributes("-transparentcolor", "black")  # Make black color transparent
+    def onkeypress(self,key):
+        try:
+            # Get the key's text and update the label
+            keytext = key.char
+        except AttributeError:
+            # For special keys like space, enter, etc.
+            keytext = str(key)
 
-# Create a label to display the pressed key
-label = tk.Label(root, text="", font=("Helvetica", 30),fg="black", bg="white")
-label.pack(pady=50)
+        self.label.setText(f"Key Pressed: {keytext}")
 
-# Timer variable to check for inactivity
-last_key_time = time.time()
+    def changekeytext(self):
+        self.label.setText("BTN")
 
-# Function to check for inactivity and clear the label
-def idle():
-    global last_key_time
-    while True:
-        time.sleep(0.1)  # Check every 100ms for inactivity
-        if time.time() - last_key_time > 0.5:  # 0.5 seconds of inactivity
-            clearlabel()
+    def clearkeytext(self):
+        self.label.setText("")
 
-# Set up the listener for the keyboard
-def startlistener():
-    with keyboard.Listener(on_press=onkeypress) as listener:
-        listener.join()
+# Main function to run the app
+def main():
+    app = QApplication(sys.argv)  # Create the application object
+    window = MainWindow()         # Create the main window
+    window.show()                 # Show the window
+    sys.exit(app.exec())          # Start the event loop
 
-# Start the key listener in a separate thread
-listener_thread = threading.Thread(target=startlistener, daemon=True)
-listener_thread.start()
-
-# Start the inactivity check in a separate thread
-inactivity_thread = threading.Thread(target=idle, daemon=True)
-inactivity_thread.start()
-
-# Start the Tkinter main loop
-root.mainloop()
+# Run the application
+if __name__ == "__main__":
+    main()

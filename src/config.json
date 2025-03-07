@@ -1,0 +1,8 @@
+{
+    "name":"Keypress App",
+    "title":"Keypress",
+    "version":"0.0.1",
+    "description": "Keyboard Press Display with Python",
+    "foreground":"#FFFFFF",
+    "background": "#000000"
+}
