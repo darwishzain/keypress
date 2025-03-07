@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Key Press - electron</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      /* background-color: #00FF00; */
+      background-color: transparent;
+    }
+    h1 {
+      color: #333;
+    }
+    #output {
+      font-size: 100px; /* Make the text large */
+      color: white;     /* White color for the text */
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Optional: add a shadow to make the text stand out */
+    }
+    #close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: transparent;
+      color: #FF0000;
+      border: none;
+      padding: 10px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button id="close-btn">X</button>
+  <!--Keyboard-->
+  <!-- <h1>Press Any Key</h1> -->
+  <div><h1 id="output"></h1></div>
+
+  <script>
+    const output = document.getElementById('output');
+
+    document.addEventListener('keydown',function (event){
+      output.textContent = event.key;
+    });
+
+    document.addEventListener('keyup',function (event){
+      output.textContent = " ";
+    });
+    document.getElementById('close-btn').addEventListener('click', () => {
+      // Close the window by sending a message to the main process
+      const { remote } = require('electron');
+      let window = remote.getCurrentWindow();
+      window.close(); // Close the window
+    });
+  </script>
+</body>
+</html>
